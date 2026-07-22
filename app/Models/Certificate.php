@@ -17,6 +17,7 @@ class Certificate extends Model
         'is_acme',
         'crt_path',
         'key_path',
+        'key_passphrase',
         'chain_path',
         'crl_path',
         'revoked',
@@ -46,6 +47,12 @@ class Certificate extends Model
         'approved_at'  => 'datetime',
         'rejected_at'  => 'datetime',
         'request_data' => 'array',
+        'key_passphrase' => 'encrypted',
+    ];
+
+    // Passphrase darf niemals in API-Responses auftauchen.
+    protected $hidden = [
+        'key_passphrase',
     ];
 
     public function parent()

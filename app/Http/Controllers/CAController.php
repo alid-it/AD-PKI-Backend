@@ -72,7 +72,10 @@ class CAController extends Controller
         $request->validate([
             'intermediate' => 'required|file',
             'key'          => 'required|file',
+            'passphrase'   => 'nullable|string',
         ]);
+
+        $passphrase = $request->input('passphrase');
 
         // ❗ Root aus DB holen
         $rootModel = Certificate::where('type', 'root')->first();
@@ -130,7 +133,8 @@ class CAController extends Controller
                 $root,
                 $intermediateCert,
                 $key,
-                $intName
+                $intName,
+                $passphrase
             );
         } catch (\Throwable $e) {
 
@@ -160,6 +164,9 @@ class CAController extends Controller
             'valid_to'      => Carbon::parse($result['valid_to']),
             'crt_path'      => $result['crt_path'],
             'key_path'      => $result['key_path'],
+            // nullable — encrypted-Cast erledigt die Verschlüsselung.
+            // Nur speichern, wenn der Key laut Go tatsächlich verschlüsselt ist.
+            'key_passphrase' => ($result['key_encrypted'] ?? false) ? $passphrase : null,
             'parent_id'     => $rootModel->id,
             'crl_path'      => $crlPath,
         ]);
@@ -191,6 +198,25 @@ class CAController extends Controller
         // 👉 aktuell einfach ersten zurückgeben
         return response()->json([
             'id' => 'int-' . $intermediates->first()->id,
+        ]);
+    }
+
+    /**
+     * 🔒 INTERN — Passphrase eines verschlüsselten Intermediate-Keys.
+     *
+     * Nur über CATokenMiddleware (ca.token) erreichbar. Wird vom Go CA-Core
+     * beim ersten Signiervorgang nach einem Neustart aufgerufen, um den
+     * verschlüsselten Key im RAM zu entschlüsseln. Niemals für Frontend/extern.
+     */
+    public function passphrase(string $id)
+    {
+        $certificate = Certificate::where('type', 'intermediate')
+            ->whereRaw('crt_path LIKE ?', ['%/' . $id . '/%'])
+            ->firstOrFail();
+
+        return response()->json([
+            // encrypted-Cast entschlüsselt automatisch beim Lesen.
+            'passphrase' => $certificate->key_passphrase,
         ]);
     }
 }

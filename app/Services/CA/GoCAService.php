@@ -162,16 +162,22 @@ class GoCAService
         string $root,
         string $intermediate,
         string $key,
-        string $name
+        string $name,
+        ?string $passphrase = null
     ): array {
+        $payload = ['name' => $name];
+
+        // Passphrase nur mitsenden, wenn vorhanden (verschlüsselter Key).
+        if ($passphrase !== null && $passphrase !== '') {
+            $payload['passphrase'] = $passphrase;
+        }
+
         $response = $this->http()
             ->timeout(10)
             ->attach('root', $root, 'root.crt')
             ->attach('intermediate', $intermediate, 'intermediate.crt')
             ->attach('key', $key, 'intermediate.key')
-            ->post($this->baseUrl . '/ca/import-intermediate', [
-                'name' => $name,
-            ]);
+            ->post($this->baseUrl . '/ca/import-intermediate', $payload);
 
         if (!$response->successful()) {
             throw new \Exception('CA intermediate import error: ' . $response->body());

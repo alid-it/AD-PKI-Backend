@@ -80,6 +80,9 @@ Route::middleware('ca.token')->prefix('internal')->group(function () {
     Route::post('/import-root', [CAController::class, 'importRoot']);
     Route::post('/import-intermediate', [CAController::class, 'importIntermediate']);
 
+    // Passphrase für verschlüsselte Intermediate-Keys (nur Go CA-Core)
+    Route::get('/intermediate/{id}/passphrase', [CAController::class, 'passphrase']);
+
     // Setup
     Route::post('/setup/create-admin', [SetupController::class, 'createAdmin']);
     Route::get('/crl/revoked', [CertificateController::class, 'revokedList']);
