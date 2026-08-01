@@ -14,6 +14,6 @@ if (!function_exists('pki_path')) {
 if (!function_exists('crl_path')) {
     function crl_path(): string
     {
-        return Setting::getValue('crl_path', pki_path('crl.pem'));
+        return Setting::getValue('crl_path', pki_path('crl.crl'));
     }
 }

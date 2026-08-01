@@ -151,7 +151,7 @@ class CAController extends Controller
         // 🔥 4. CRL PATH
         // =====================================================
 
-        $crlPath = "/crl/{$intName}.pem";
+        $crlPath = "/crl/{$intName}.crl";
 
         // =====================================================
         // 🔥 5. FINAL UPDATE (ECHTE DATEN)

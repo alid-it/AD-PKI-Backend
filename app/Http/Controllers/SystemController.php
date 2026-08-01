@@ -204,10 +204,12 @@ class SystemController extends Controller
         // =====================================================
 
         foreach ($intermediates as $int) {
-            $crlUrl = url('/api/' . ltrim((string) $int->crl_path, '/'));
-            $ocspUrl = $this->baseUrl . '/ocsp';
+            $crlUrl = rtrim((string) Setting::getValue('crl_base_url'), '/')
+                . '/' . basename((string) $int->crl_path);
+            $ocspHealthUrl = $this->baseUrl . '/ocsp';
+            $ocspUrl = (string) Setting::getValue('ocsp_base_url');
 
-            $crlFile = pki_path('crl_int-' . $int->id . '.pem');
+            $crlFile = pki_path('crl_int-' . $int->id . '.crl');
             $crlStatus = file_exists($crlFile) && filesize($crlFile) > 0;
 
             $ocspStatus = true;
@@ -216,7 +218,7 @@ class SystemController extends Controller
                 GoCAService::client()
                     ->timeout(1)
                     ->connectTimeout(1)
-                    ->get($ocspUrl);
+                    ->get($ocspHealthUrl);
             } catch (\Exception $e) {
                 $ocspStatus = false;
             }

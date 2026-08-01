@@ -32,8 +32,8 @@ class DevDatabaseSeeder extends Seeder
 14	telegram_bot_token	7723656744:AAFA8t_L5fC4D7Yap03HBePR2uYM-8bMlCk	2026-04-11 16:03:09	2026-04-12 09:09:02
 15	telegram_chat_id	8400793770	2026-04-11 16:03:09	2026-04-12 09:09:02
 10	webhook_url	\N	2026-04-11 16:03:09	2026-04-12 09:39:01
-16	crl_base_url	http://127.0.0.1:8000	\N	\N
-17	ocsp_base_url	http://127.0.0.1:8080	\N	\N
+16	crl_base_url	http://127.0.0.1:8000/api/crl	\N	\N
+17	ocsp_base_url	http://127.0.0.1:8000/api/ocsp	\N	\N
 DATA);
 
         $this->copy('users', [
@@ -86,7 +86,7 @@ DATA);
             'request_data'
         ], <<<'DATA'
 1	root	Test Root CA	\N	507267492069F768AC5CD7F75C720D7DF99DDFC0	2026-04-11 14:28:01	2036-04-11 14:28:01	\N	f	/var/lib/adpki/root/root.crt	\N	\N	\N	2026-04-11 14:28:01	2026-04-11 14:28:01	f	\N	\N	\N	\N	\N	issued	\N	\N	\N	\N	\N	\N	\N
-2	intermediate	Test Intermediate CA	\N	7DF776CE0CDED6203F4B9ADBD86FBB3FF4AFF889	2025-12-25 15:15:07	2030-12-24 15:15:07	1	f	/var/lib/adpki/intermediates/int-2/intermediate.crt	/var/lib/adpki/intermediates/int-2/private/intermediate.key	\N	/crl/int-2.pem	2026-04-11 14:28:04	2026-04-11 14:28:04	f	\N	\N	\N	\N	\N	issued	\N	\N	\N	\N	\N	\N	\N
+2	intermediate	Test Intermediate CA	\N	7DF776CE0CDED6203F4B9ADBD86FBB3FF4AFF889	2025-12-25 15:15:07	2030-12-24 15:15:07	1	f	/var/lib/adpki/intermediates/int-2/intermediate.crt	/var/lib/adpki/intermediates/int-2/private/intermediate.key	\N	/crl/int-2.crl	2026-04-11 14:28:04	2026-04-11 14:28:04	f	\N	\N	\N	\N	\N	issued	\N	\N	\N	\N	\N	\N	\N
 3	tls	teste	\N	bbd15762b452e90	2026-04-12 12:17:20	2026-04-17 14:33:57	2	f	/var/lib/adpki/issued/teste-bbd15762b452e90/certificate.crt	/var/lib/adpki/issued/teste-bbd15762b452e90/private.key	/var/lib/adpki/issued/teste-bbd15762b452e90/fullchain.pem	\N	2026-04-12 10:17:20	2026-04-12 10:23:01	t	2026-04-12 10:23:01	unspecified	\N	\N	\N	issued	\N	\N	\N	\N	\N	\N	\N
 4	tls	Eventtest	\N	332220c7ff72f459	2026-04-12 14:35:44	2026-04-17 14:36:29	2	f	/var/lib/adpki/issued/Eventtest-332220c7ff72f459/certificate.crt	/var/lib/adpki/issued/Eventtest-332220c7ff72f459/private.key	/var/lib/adpki/issued/Eventtest-332220c7ff72f459/fullchain.pem	\N	2026-04-12 12:35:43	2026-04-12 12:42:46	t	2026-04-12 12:42:46	unspecified	\N	\N	\N	issued	\N	\N	\N	\N	\N	\N	\N
 5	tls	tester	\N	2db96a07a5f671f2	2026-04-12 14:43:54	2027-04-12 14:43:54	2	f	/var/lib/adpki/issued/tester-2db96a07a5f671f2/certificate.crt	/var/lib/adpki/issued/tester-2db96a07a5f671f2/private.key	/var/lib/adpki/issued/tester-2db96a07a5f671f2/fullchain.pem	\N	2026-04-12 12:43:54	2026-04-12 12:45:35	t	2026-04-12 12:45:35	unspecified	\N	\N	\N	issued	\N	\N	\N	\N	\N	\N	\N

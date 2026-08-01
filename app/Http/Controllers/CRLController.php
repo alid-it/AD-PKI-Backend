@@ -9,7 +9,7 @@ class CRLController extends Controller
     public function show($id)
     {
         // 🔥 Go-URL
-        $goUrl = config('services.ca.url') . "/crl/{$id}.pem";
+        $goUrl = config('services.ca.url') . "/crl/{$id}.crl";
 
         try {
             $response = \App\Services\CA\GoCAService::client()

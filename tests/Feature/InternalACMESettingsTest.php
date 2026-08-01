@@ -31,8 +31,8 @@ class InternalACMESettingsTest extends TestCase
         $this->assertSame(2, $intermediate->id);
 
         Setting::setValue('active_intermediate', '2');
-        Setting::setValue('crl_base_url', 'https://pki.example.test/api/crl');
-        Setting::setValue('ocsp_base_url', 'https://pki.example.test/api/ocsp');
+        Setting::setValue('crl_base_url', 'http://pki.example.test/api/crl');
+        Setting::setValue('ocsp_base_url', 'http://pki.example.test/api/ocsp');
         Setting::setValue('max_validity_days', '365');
         Setting::setValue('acme_validity_days', '90');
         Setting::setValue('dns_servers', '["192.0.2.53"]');
@@ -45,7 +45,8 @@ class InternalACMESettingsTest extends TestCase
             ->assertOk()
             ->assertJsonPath('intermediate_id', 'int-2')
             ->assertJsonPath('validity_days', 90)
-            ->assertJsonPath('crl_url', 'https://pki.example.test/api/crl/int-2.pem');
+            ->assertJsonPath('crl_url', 'http://pki.example.test/api/crl/int-2.crl')
+            ->assertJsonPath('ocsp_url', 'http://pki.example.test/api/ocsp');
 
         $this->assertSame('int-2', Setting::getValue('active_intermediate'));
     }

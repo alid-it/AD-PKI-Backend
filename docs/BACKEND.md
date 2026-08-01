@@ -22,7 +22,7 @@
 
 ### Öffentlich (keine Auth)
 - `POST /login`
-- `GET /crl/{id}.pem`
+- `GET /crl/{id}.crl`
 - `GET /config` (Reverb-Connection-Parameter für das Frontend)
 - `GET|POST /ocsp`, `GET|POST /timestamp`
 
@@ -91,8 +91,10 @@ HTTP-Client mit Header `X-CA-Token` gegen `CA_URL`. Methoden:
 - `clearOcspCache()` — invalidiert den OCSP-Cache des CA-Service
 
 CRL-/OCSP-URLs werden dynamisch aus den `settings`-Einträgen
-`crl_base_url` / `ocsp_base_url` plus dem `crl_path` des jeweiligen
-Intermediate-Zertifikats zusammengesetzt.
+`crl_base_url` / `ocsp_base_url` zusammengesetzt. Beide öffentlichen
+Revocation-Endpunkte verwenden HTTP. An die CRL-Basis-URL wird der
+Intermediate-Dateiname `{id}.crl` angehängt; `ocsp_base_url` enthält bereits
+den vollständigen OCSP-Endpunkt.
 
 ## ACME-Flow
 

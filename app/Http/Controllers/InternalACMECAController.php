@@ -32,7 +32,7 @@ class InternalACMECAController extends Controller
 
         return response()->json([
             'intermediate_id' => $intermediateId,
-            'crl_url' => rtrim($crlBase, '/') . '/' . $intermediateId . '.pem',
+            'crl_url' => rtrim($crlBase, '/') . '/' . $intermediateId . '.crl',
             'ocsp_url' => rtrim($ocspBase, '/'),
             'validity_days' => $validityDays,
             'dns_servers' => $dnsServers,

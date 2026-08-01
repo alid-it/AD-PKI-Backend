@@ -47,7 +47,7 @@ use App\Http\Controllers\TSAController;
 // =====================================================
 
 Route::post('/login', [AuthController::class, 'login']);
-Route::get('/crl/{id}.pem', [CRLController::class, 'show']);
+Route::get('/crl/{id}.crl', [CRLController::class, 'show']);
 Route::get('/config', function () {
     return response()->json([
         'reverb_key' => config('reverb.apps.apps.0.key'),

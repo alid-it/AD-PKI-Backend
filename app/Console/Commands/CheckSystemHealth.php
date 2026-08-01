@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Setting;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,7 @@ class CheckSystemHealth extends Command
             $this->info("Checking system health...");
 
             $baseUrl = config('services.ca.url');
+            $publicOcspUrl = (string) Setting::getValue('ocsp_base_url');
 
             $intermediates = DB::table('certificates')
                 ->where('type', 'intermediate')
@@ -29,14 +31,15 @@ class CheckSystemHealth extends Command
             foreach ($intermediates as $int) {
 
                 // 🔥 CRL CHECK
-                $crlFile = pki_path('crl_int-' . $int->id . '.pem');
+                $crlFile = pki_path('crl_int-' . $int->id . '.crl');
                 $crlOk = file_exists($crlFile) && filesize($crlFile) > 0;
 
                 // 🔥 CRL Status live broadcasten
                 CaHealthChanged::dispatch(
                     'CRL (int-' . $int->id . ')',
                     $crlOk ? 'OK' : 'ERROR',
-                    url('/api/crl/int-' . $int->id . '.pem')
+                    rtrim((string) Setting::getValue('crl_base_url'), '/')
+                        . '/int-' . $int->id . '.crl'
                 );
 
                 if (!$crlOk) {
@@ -62,7 +65,7 @@ class CheckSystemHealth extends Command
                 CaHealthChanged::dispatch(
                     'OCSP',
                     $ocspOk ? 'OK' : 'ERROR',
-                    $baseUrl . '/ocsp'
+                    $publicOcspUrl
                 );
 
                 if (!$ocspOk) {
@@ -70,7 +73,7 @@ class CheckSystemHealth extends Command
                     $this->error("OCSP FAILED");
 
                     app(NotificationEngine::class)->dispatch('ocsp_failed', [
-                        'ocsp_url' => $baseUrl . '/ocsp',
+                        'ocsp_url' => $publicOcspUrl,
                     ]);
                 }
             }

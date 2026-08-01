@@ -88,12 +88,8 @@ class GoCAService
     /**
      * 🔥 Baut CRL + OCSP URLs
      */
-    private function buildUrls(Certificate $ca, string $intermediateId): array
+    private function buildUrls(string $intermediateId): array
     {
-        if (!$ca->crl_path) {
-            throw new \Exception('CRL path missing for intermediate');
-        }
-
         $base = Setting::where('key', 'crl_base_url')->value('value');
         $ocspBase = Setting::where('key', 'ocsp_base_url')->value('value');
 
@@ -106,8 +102,10 @@ class GoCAService
         }
 
         return [
-            'crl' => rtrim($base, '/') . $ca->crl_path,
-            'ocsp' => rtrim($ocspBase, '/') . '/ocsp',
+            // Both settings already point at their public Laravel endpoints.
+            // Only the intermediate-specific CRL filename is still missing.
+            'crl' => rtrim($base, '/') . '/' . $intermediateId . '.crl',
+            'ocsp' => rtrim($ocspBase, '/'),
         ];
     }
 
@@ -116,9 +114,9 @@ class GoCAService
      */
     public function signCsr(string $csrContent, ?string $intermediateId = null, string $type = 'tls'): array
     {
-        [$intermediate, $intermediateId] = $this->resolveIntermediate($intermediateId);
+        [, $intermediateId] = $this->resolveIntermediate($intermediateId);
 
-        $urls = $this->buildUrls($intermediate, $intermediateId);
+        $urls = $this->buildUrls($intermediateId);
 
         $response = $this->http()
             ->timeout(10)
@@ -206,11 +204,11 @@ class GoCAService
     {
         $type = $data['type'] ?? 'tls';
 
-        [$intermediate, $intermediateId] = $this->resolveIntermediate(
+        [, $intermediateId] = $this->resolveIntermediate(
             $data['parent_id'] ?? null
         );
 
-        $urls = $this->buildUrls($intermediate, $intermediateId);
+        $urls = $this->buildUrls($intermediateId);
 
         $sanDns = array_values(array_filter($data['san_dns'] ?? []));
         $sanIps = array_values(array_filter($data['san_ips'] ?? []));
@@ -270,8 +268,8 @@ class GoCAService
      */
     public function signAcmeCsr(string $csrPem): array
     {
-        [$intermediate, $intermediateId] = $this->resolveIntermediate(null);
-        $urls = $this->buildUrls($intermediate, $intermediateId);
+        [, $intermediateId] = $this->resolveIntermediate(null);
+        $urls = $this->buildUrls($intermediateId);
 
         $response = $this->http()
             ->timeout(10)

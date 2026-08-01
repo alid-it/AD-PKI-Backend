@@ -46,7 +46,7 @@ class DashboardController extends Controller
             ->pluck('common_name');
 
         // 🔐 CRL aus DB
-        $crlPath = Setting::getValue('crl_path', pki_path('crl.pem'));
+        $crlPath = Setting::getValue('crl_path', pki_path('crl.crl'));
         $crl = file_exists($crlPath);
 
         // 🌐 OCSP aus config
