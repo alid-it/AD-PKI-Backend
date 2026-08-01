@@ -12,10 +12,22 @@ class InternalACMECAController extends Controller
 {
     public function acmeSettings()
     {
-        $intermediateId = Setting::getValue('active_intermediate');
+        $activeIntermediate = $this->resolveActiveIntermediate();
+        if (!$activeIntermediate) {
+            return response()->json([
+                'error' => 'active intermediate not found',
+            ], 404);
+        }
+
+        [, $intermediateId] = $activeIntermediate;
         $crlBase = Setting::getValue('crl_base_url');
         $ocspBase = Setting::getValue('ocsp_base_url');
-        $validityDays = (int) (Setting::getValue('max_validity_days') ?? 90);
+        $validityDays = (int) (
+            Setting::getValue('acme_validity_days')
+            ?? Setting::getValue('max_validity_days')
+            ?? 90
+        );
+        $validityDays = max(1, min($validityDays, 365));
         $dnsServers = json_decode(Setting::getValue('dns_servers') ?? '[]', true);
 
         return response()->json([
@@ -40,11 +52,8 @@ class InternalACMECAController extends Controller
         // parent_id automatisch ermitteln wenn nicht angegeben
         $parentId = $request->parent_id;
         if (!$parentId) {
-            $intermediateId = Setting::getValue('active_intermediate');
-            $parent = Certificate::where('type', 'intermediate')
-                ->whereRaw("crt_path LIKE ?", ['%/' . $intermediateId . '/%'])
-                ->first();
-            $parentId = $parent?->id;
+            $activeIntermediate = $this->resolveActiveIntermediate();
+            $parentId = $activeIntermediate[0]->id ?? null;
         }
 
         $cert = Certificate::create([
@@ -169,5 +178,60 @@ class InternalACMECAController extends Controller
         ]);
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Resolve legacy DB IDs (for example "2") and canonical CA directory IDs
+     * (for example "int-2") to the actual intermediate certificate. Legacy
+     * settings are repaired so subsequent CA-Core requests stay canonical.
+     *
+     * @return array{0: Certificate, 1: string}|null
+     */
+    private function resolveActiveIntermediate(): ?array
+    {
+        $configured = Setting::getValue('active_intermediate');
+        $certificate = null;
+
+        if ($configured !== null && ctype_digit((string) $configured)) {
+            $certificate = Certificate::where('type', 'intermediate')
+                ->find((int) $configured);
+        } elseif (is_string($configured) && $configured !== '') {
+            $certificate = Certificate::where('type', 'intermediate')
+                ->get()
+                ->first(fn (Certificate $candidate) =>
+                    $this->intermediateDirectoryId($candidate) === $configured
+                );
+        }
+
+        $certificate ??= Certificate::where('type', 'intermediate')
+            ->latest('id')
+            ->first();
+
+        if (!$certificate) {
+            return null;
+        }
+
+        $intermediateId = $this->intermediateDirectoryId($certificate);
+        if (!$intermediateId) {
+            return null;
+        }
+
+        if ($configured !== $intermediateId) {
+            Setting::setValue('active_intermediate', $intermediateId);
+        }
+
+        return [$certificate, $intermediateId];
+    }
+
+    private function intermediateDirectoryId(Certificate $certificate): ?string
+    {
+        if (!$certificate->crt_path) {
+            return null;
+        }
+
+        $path = str_replace('\\', '/', $certificate->crt_path);
+        $directory = basename(dirname($path));
+
+        return preg_match('/^int-[0-9]+$/', $directory) ? $directory : null;
     }
 }
